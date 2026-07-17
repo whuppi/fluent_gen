@@ -1,0 +1,20 @@
+# Activates the fluent_gen Builder for this fixture project.
+#
+# `auto_apply: dependents` in the generator's own build.yaml means
+# the Builder runs automatically whenever fluent_gen is in
+# dev_dependencies — but we still need to provide config options
+# (at minimum `base_locale`) since none have safe project-agnostic
+# defaults.
+
+targets:
+  $default:
+    builders:
+      fluent_gen|fluent_gen:
+        options:
+          base_locale: en
+          ftl_dir: lib/i18n
+          class_name: AppMessages
+          output_path: lib/i18n/app_messages.g.dart
+          # Embed the FTL sources so AppLocale.load() works with no
+          # asset pipeline — also exercises the bundling lane.
+          bundle_ftl: true

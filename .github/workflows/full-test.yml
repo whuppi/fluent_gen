@@ -1,0 +1,140 @@
+# Full test — maintainer adds "ready-to-test" to trigger. Label auto-removed on
+# new pushes (stale results = wasted compute). Single matrix — core rows run
+# always, portability rows (marked [P]) run when the portability toggle is on.
+# Each row declares capabilities; the shared make-target provisions them.#
+# PRE-RELEASE NOTE: the pubspec carries sibling-repo path deps that a lone
+# CI checkout cannot resolve — rows go green when the family release flips
+# the deps to hosted (fluent_bundle/docs/UPDATING.md release checklist).
+name: Full Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    branches: [prod, dev]
+  workflow_dispatch:
+    inputs:
+      portability:
+        description: "Portability — test every valid runner per target"
+        type: boolean
+        default: true
+      filter:
+        description: "Filter by target (linux, web...) or type (pkg, int)"
+        type: choice
+        options:
+          - all
+          - linux
+          - macos
+          - windows
+          - web
+          - pkg
+          - int
+        default: all
+      runner:
+        description: "Runner for infra jobs (gate)"
+        type: choice
+        options: [ubuntu-24.04, macos-14, windows-2025-vs2026]
+        default: ubuntu-24.04
+
+permissions: {}
+
+concurrency:
+  group: full-test-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  DEFAULT_RUNNER: ubuntu-24.04
+  DEFAULT_PORTABILITY: 'true'
+
+jobs:
+  inputs:
+    name: Resolve inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      runner: ${{ steps.resolve.outputs.runner }}
+      portability: ${{ steps.resolve.outputs.portability }}
+      filter: ${{ steps.resolve.outputs.filter }}
+    steps:
+      - id: resolve
+        shell: bash
+        env:
+          RUNNER_IN: ${{ inputs.runner }}
+          RUNNER_DEF: ${{ env.DEFAULT_RUNNER }}
+          PORT_IN: ${{ inputs.portability }}
+          PORT_DEF: ${{ env.DEFAULT_PORTABILITY }}
+          FILTER_IN: ${{ inputs.filter }}
+        run: |
+          {
+            echo "runner=${RUNNER_IN:-$RUNNER_DEF}"
+            echo "portability=${PORT_IN:-$PORT_DEF}"
+            echo "filter=${FILTER_IN:-all}"
+          } >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: inputs
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.action == 'labeled' && github.event.label.name == 'ready-to-test')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "pkg: Linux (ubuntu-x64)", runner: ubuntu-24.04, make: test, timeout: 20 }
+          - { name: "pkg: macOS (macos-arm64)", runner: macos-14, make: test, timeout: 20 }
+          - { name: "pkg: Windows (win-x64)", runner: windows-2025-vs2026, make: test, timeout: 30 }
+          - { name: "int: build_runner e2e (ubuntu-x64)", runner: ubuntu-24.04, make: test-example, timeout: 25 }
+          - { name: "int: build_runner e2e (macos-arm64)", runner: macos-14, make: test-example, timeout: 25 }
+          - { name: "int: build_runner e2e (win-x64)", runner: windows-2025-vs2026, make: test-example, timeout: 30 }
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ matrix.timeout }}
+    permissions:
+      contents: read  # checkout + caches; no API writes
+    steps:
+      - name: Check filter
+        id: filter
+        uses: whuppi/ci/actions/matrix-filter@v2.0.4
+        with:
+          name: ${{ matrix.name }}
+          filter: ${{ needs.inputs.outputs.filter }}
+          portability: ${{ needs.inputs.outputs.portability }}
+          row-portability: ${{ matrix.portability || 'false' }}
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        if: steps.filter.outputs.match == 'true'
+        with:
+          persist-credentials: false
+      - uses: whuppi/ci/actions/make-target@v2.0.4
+        if: steps.filter.outputs.match == 'true'
+        with:
+          make-target: ${{ matrix.make }}
+          chrome: ${{ matrix.chrome || 'false' }}
+          headless-display: ${{ matrix.headless-display || 'false' }}
+      - name: Upload test results
+        if: always() && steps.filter.outputs.match == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.make }}-${{ matrix.runner }}
+          path: test-results/
+          if-no-files-found: ignore
+
+  gate:
+    name: Full Test Gate
+    if: always()
+    needs: [inputs, test]
+    runs-on: ${{ needs.inputs.outputs.runner }}
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Evaluate
+        shell: bash
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          RESULT="$TEST_RESULT"
+          if [[ "$RESULT" != "success" && "$RESULT" != "skipped" ]]; then
+            echo "FAILED: test returned '$RESULT'"
+            exit 1
+          fi
+          echo "All jobs passed"

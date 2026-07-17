@@ -1,0 +1,8 @@
+# Published-archive excludes (repo keeps these; consumers never need them).
+# Tests can never affect a consumer app's size either way (not in any
+# import graph); tooling and internal docs are repo concerns.
+test/
+tool/
+Makefile
+docs/
+.githooks/

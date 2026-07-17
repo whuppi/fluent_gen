@@ -1,0 +1,67 @@
+name: fluent_gen
+version: 0.0.0
+description: >-
+  Compile-time typed accessors for fluent_bundle — reads .ftl at build
+  time, infers Dart argument types from usage, and makes message ids
+  analyzer-checked. Ships only as a dev_dependency.
+homepage: https://github.com/whuppi/fluent_gen
+repository: https://github.com/whuppi/fluent_gen
+issue_tracker: https://github.com/whuppi/fluent_gen/issues
+
+topics:
+  - i18n
+  - localization
+  - fluent
+  - codegen
+  - build-runner
+
+# Part of the fluent family. Not a pub-workspace member — do not add
+# `resolution: workspace`.
+
+environment:
+  sdk: ^3.7.0
+
+# Path dep on the core while the family is unpublished — the release
+# checklist flips it to a hosted version at publish time.
+dependencies:
+  # The Builder interface and the build-time graph protocol. Standard
+  # for every Dart code generator.
+  build: ^4.0.0
+
+  # Asset glob walking inside the build step.
+  glob: ^2.0.0
+
+  # Used for one thing only: the public
+  # `package:fluent_bundle/syntax.dart` barrel exposing `FluentParser`
+  # and the parse-time AST. Do not import from fluent_bundle's `src/`
+  # — sibling-package internals are off-limits to keep this package
+  # independently publishable.
+  fluent_bundle:
+    path: ../fluent_bundle
+
+  # Dart code formatter, applied to every emitted file so the output
+  # matches the consumer's analysis_options.yaml without analyzer
+  # complaints.
+  dart_style: ^3.0.0
+
+  # Sealed `path` and join helpers used in locale discovery.
+  path: ^1.8.0
+
+dev_dependencies:
+  # Runs the Builder in the example fixture + local iteration.
+  build_runner: ^2.4.0
+  # testBuilder harness for driving FluentGenBuilder in unit tests.
+  build_test: ^3.0.0
+
+  # Builder diagnostics assertions in tests.
+  logging: ^1.2.0
+  # `crypto` is a transitive dep of `package:build` but the fan-out
+  # tests need a `Digest` to satisfy PostProcessBuildStep's `digest`
+  # method. Listed explicitly so the depend_on_referenced_packages
+  # lint stays happy.
+  crypto: ^3.0.0
+  # Lint rules
+  lints: ^5.0.0
+
+  # Test runner
+  test: ^1.25.0

@@ -1,0 +1,6 @@
+# VM-only suites (the generator is a build-time dart:io tool; its output
+# is exercised end to end by the example fixture via `make test-example`).
+#
+#   dart test        # or: make test / make check
+
+platforms: [vm]

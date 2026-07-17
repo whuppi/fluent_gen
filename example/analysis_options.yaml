@@ -1,0 +1,6 @@
+# The recommended lint set — the ecosystem baseline. The
+# `generated_analyzes_clean_test` runs `dart analyze .` here, so the
+# generated `app_messages.g.dart` must pass these lints with no
+# suppression header. That is the whole point: the generator emits
+# clean code, not code hidden behind `// ignore_for_file`.
+include: package:lints/recommended.yaml

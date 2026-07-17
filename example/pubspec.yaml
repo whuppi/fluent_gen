@@ -1,0 +1,22 @@
+name: fluent_gen_example
+description: "End-to-end fixture project for fluent_gen. Holds a minimal `.ftl` set under `lib/i18n/` and runs build_runner to verify the generated output compiles and behaves correctly."
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  fluent_bundle:
+    path: ../../fluent_bundle
+  # The smoke test exercises NUMBER / DATETIME / plurals, which need a
+  # real CLDR backend — the intl satellite provides IntlBackend.
+  fluent_intl:
+    path: ../../fluent_intl
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  fluent_gen:
+    path: ../
+  lints: ^5.0.0
+  test: ^1.25.0

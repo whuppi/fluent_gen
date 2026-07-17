@@ -1,0 +1,38 @@
+# Two builders, one pipeline:
+#
+#   `fluent_gen` (Builder)
+#     Triggered by the synthetic `$lib$` input (one run per
+#     consumer package). Walks every `.ftl` file under the
+#     configured directory, runs inference + emission, and writes
+#     a JSON payload `{outputs: {path: source}}` to a cached temp
+#     file. `build_to: cache` keeps that temp file out of the
+#     source tree.
+#
+#   `fluent_fan_out` (PostProcessBuilder)
+#     Triggered by the temp JSON. Reads it and writes each
+#     `path → source` entry to a real source-tree file via
+#     `build_to: source`, so the `.g.dart` lands where the IDE
+#     can see it.
+#
+# `auto_apply: root_package` on `fluent_gen` means the consumer
+# only adds fluent_gen as a dev_dep; build_runner picks the
+# pipeline up automatically. The fan-out post-process builder is
+# bound to the main builder via `applies_builders`.
+
+builders:
+  fluent_gen:
+    import: 'package:fluent_gen/builder.dart'
+    builder_factories: ['fluentGenBuilder']
+    build_extensions:
+      $lib$:
+        - _fluent_gen_temp.json
+    auto_apply: root_package
+    build_to: cache
+    applies_builders: [':fluent_fan_out']
+
+post_process_builders:
+  fluent_fan_out:
+    import: 'package:fluent_gen/builder.dart'
+    builder_factory: 'fluentFanOutBuilder'
+    input_extensions: ['_fluent_gen_temp.json']
+    build_to: source
