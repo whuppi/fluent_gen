@@ -12,6 +12,8 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 /// Names from `accessorNames` (the generated manifest) that no Dart
 /// file under [sourceRoot] references.
 ///
@@ -40,22 +42,32 @@ Set<String> unusedFluentAccessors({
   String sourceRoot = 'lib',
   List<String> excludePaths = const [],
 }) {
-  final generated = File(generatedFilePath).absolute.path;
-  final excluded = [
-    generated,
-    for (final path in excludePaths)
-      FileSystemEntity.isDirectorySync(path)
-          ? Directory(path).absolute.path
-          : File(path).absolute.path,
-  ];
+  // Compare through `package:path`, not raw `startsWith`: on Windows
+  // `File('lib/x').absolute.path` keeps the forward slashes in the
+  // relative part while `listSync` entities use backslashes, so a raw
+  // string prefix never matches. `p.equals` / `p.isWithin` are
+  // separator-aware (and `isWithin` respects the segment boundary, so
+  // `lib/foo` never swallows `lib/foobar`).
+  final excludedFiles = <String>[p.absolute(generatedFilePath)];
+  final excludedDirs = <String>[];
+  for (final path in excludePaths) {
+    if (FileSystemEntity.isDirectorySync(path)) {
+      excludedDirs.add(p.absolute(path));
+    } else {
+      excludedFiles.add(p.absolute(path));
+    }
+  }
 
   final sources = StringBuffer();
   final root = Directory(sourceRoot);
   if (root.existsSync()) {
     for (final entity in root.listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
-      final absolute = entity.absolute.path;
-      if (excluded.any(absolute.startsWith)) continue;
+      final absolute = p.absolute(entity.path);
+      final skip =
+          excludedFiles.any((e) => p.equals(e, absolute)) ||
+          excludedDirs.any((d) => p.isWithin(d, absolute));
+      if (skip) continue;
       sources
         ..write(entity.readAsStringSync())
         ..write('\n');
