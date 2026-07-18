@@ -45,13 +45,13 @@ If you're working on this tool standalone (cloned outside the workspace), the in
 Run these after every code change. A failing test or analyzer error means the task is not done — don't suppress with `// ignore:`, `# noqa`, or `--no-verify`. Fix the underlying issue.
 
 ```bash
-# Setup (one-time) — needs sibling repo ../fluent_bundle
+# Setup (one-time)
 make hooks
 fvm install && fvm dart pub get
 cd example && fvm dart pub get && cd ..
 
 # Full gate
-make check               # lint-shell + analyze (pkg + example) + analyze-floor +
+make check               # lint-shell + analyze (pkg + example) + analyze-floor + platforms +
                          # test (inference, goldens, builder) + test-example (build_runner e2e)
 ```
 
@@ -78,7 +78,7 @@ When in doubt, read existing code in this repo and match it. Per-repo style cons
 - **The example fixture's generated `.g.dart` is COMMITTED source** — regenerate it (`cd example && dart run build_runner build`) whenever the emitter or the fixture FTL changes; `make test-example` proves it stays in sync through the real build_runner.
 - **Type inference is annotation-free** — usage drives the type; conflicting evidence is a build-time error naming the message, never a quiet `Object?`.
 - **The generator is a dart:io build-time tool** — native-only, like every Dart generator; its OUTPUT plus fluent_bundle runs on all six platforms including web.
-- **The `platforms` gate is blocked-loud pre-release** (native-only expectation).
+- **The `platforms` gate runs live with a native-only expectation** (no web — a dart:io build tool).
 
 ---
 
