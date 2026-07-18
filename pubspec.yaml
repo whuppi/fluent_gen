@@ -36,8 +36,7 @@ dependencies:
   # and the parse-time AST. Do not import from fluent_bundle's `src/`
   # — sibling-package internals are off-limits to keep this package
   # independently publishable.
-  fluent_bundle:
-    path: ../fluent_bundle
+  fluent_bundle: ^0.1.0
 
   # Dart code formatter, applied to every emitted file so the output
   # matches the consumer's analysis_options.yaml without analyzer

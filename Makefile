@@ -26,7 +26,7 @@ VERBOSE := $(if $(CI),--verbose,)
 #
 # make check    Full local gate before handing work over.
 
-check: lint-shell analyze analyze-floor test test-example
+check: lint-shell analyze analyze-floor platforms test test-example
 
 # make hooks    Activate the repo's git hooks (commit-msg, pre-commit).
 #               Run once after cloning — they stay dormant otherwise.
@@ -43,20 +43,14 @@ lint-shell:
 	@bash tool/lint_shell.sh
 
 
-# make platforms  BLOCKED pre-release, deliberately not in `check`: pana
-#                 snapshots the GIT REPO, and the fluent_bundle path dep lives
-#                 in a sibling repo whose required version is not yet
-#                 published. Activates when the family deps go hosted — the
-#                 release checklist flips it into `check`.
-#                 At release this gate expects native-only (no web) — the
-#                 generator is a dart:io build_runner tool.
+# make platforms  Gate pub.dev platform support: pana (the exact analyzer
+#                 pub.dev runs, pinned via tool/versions.env) must report the
+#                 native platforms — NO web, the generator is a dart:io
+#                 build_runner tool — else a regression silently shifts the
+#                 supported set. Shared gate tool/platforms_gate.sh (canonical
+#                 in whuppi/ci, stamped).
 platforms:
-	@echo "platforms gate is BLOCKED pre-release for fluent_gen:"
-	@echo "  pana snapshots the git repo; ../fluent_bundle (a sibling repo whose"
-	@echo "  required version is not yet published) can never resolve in it."
-	@echo "  Activates at release when the family deps go hosted — see the"
-	@echo "  family release checklist (fluent_bundle/docs/UPDATING.md §6)."
-	@exit 2
+	@DART="$(DART)" EXPECTED_PLATFORMS="android ios linux macos windows" bash tool/platforms_gate.sh
 
 # ═══════════════════════════════════════════════════════════════════
 # § 2 — Analyze
