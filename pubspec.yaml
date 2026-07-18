@@ -1,5 +1,5 @@
 name: fluent_gen
-version: 0.0.0
+version: 0.1.0
 description: >-
   Typed Dart calls for fluent_bundle — reads your .ftl files at build
   time and generates methods, so misspelled names and wrong arguments
