@@ -62,4 +62,9 @@ CONTENT RULES (never change)
 
 ## 0.1.0-dev.0
 
-First release — compile-time typed accessors for fluent_bundle: FTL in, analyzer-checked message ids and inferred argument types out, via build_runner.
+First prerelease — typed Dart calls for fluent_bundle, generated from your `.ftl` files at build time.
+
+- **What it does:** reads your `.ftl` files during `build_runner` and generates a Dart class — call `messages.welcome(name: ...)` instead of a string id.
+- **Type safety:** a misspelled message name, a missing argument, or a `String` where a number belongs is a compile error. Argument types are worked out from how each variable is used — no annotations to write.
+- **Also checks:** during the build it warns about messages missing from a language, stray messages, and malformed `.ftl`.
+- **Footprint:** a dev-dependency only — nothing from it ships in your app.
