@@ -53,32 +53,21 @@ $DART pub global activate pana "$PANA_VERSION" >/dev/null
 # working tree first — excludes the gitignored build caches + any vendored
 # source (each exclude is a no-op when the package has no such dir). A copy, so
 # it also reflects uncommitted changes.
-#
-# PANA_IN_PLACE=1: pre-release packages with RELATIVE PATH deps can't be
-# snapshotted alone — the dep paths dangle in the copy and pana resolves to
-# zero platforms. Run pana against the working tree instead (its own
-# git-aware copy keeps the verdict clean). Drop the flag when the deps go
-# hosted — the snapshot is the honest pub.dev-shaped run.
+snap="$(mktemp -d)"
 out="$(mktemp)"
-if [ "${PANA_IN_PLACE:-0}" = "1" ]; then
-  trap 'rm -f "$out"' EXIT
-  $DART pub global run pana --json . > "$out" 2>/dev/null || true
-else
-  snap="$(mktemp -d)"
-  trap 'rm -rf "$snap" "$out"' EXIT
+trap 'rm -rf "$snap" "$out"' EXIT
 
-  rsync -a \
-    --exclude='/.git' \
-    --exclude='/vendor' \
-    --exclude='.dart_tool' \
-    --exclude='/build' \
-    --exclude='/build_output' \
-    --exclude='/test-results' \
-    --exclude='/example/build' \
-    ./ "$snap/"
+rsync -a \
+  --exclude='/.git' \
+  --exclude='/vendor' \
+  --exclude='.dart_tool' \
+  --exclude='/build' \
+  --exclude='/build_output' \
+  --exclude='/test-results' \
+  --exclude='/example/build' \
+  ./ "$snap/"
 
-  ( cd "$snap" && $DART pub global run pana --json . ) > "$out" 2>/dev/null || true
-fi
+( cd "$snap" && $DART pub global run pana --json . ) > "$out" 2>/dev/null || true
 
 if ! jq -e '.tags' "$out" >/dev/null 2>&1; then
   echo "platforms_gate: pana produced no tags — run '$DART pub global run pana .' to see why"

@@ -1,9 +1,9 @@
 name: fluent_gen
 version: 0.0.0
 description: >-
-  Compile-time typed accessors for fluent_bundle — reads .ftl at build
-  time, infers Dart argument types from usage, and makes message ids
-  analyzer-checked. Ships only as a dev_dependency.
+  Typed Dart calls for fluent_bundle — reads your .ftl files at build
+  time and generates methods, so misspelled names and wrong arguments
+  fail to compile. Dev-dependency only.
 homepage: https://github.com/whuppi/fluent_gen
 repository: https://github.com/whuppi/fluent_gen
 issue_tracker: https://github.com/whuppi/fluent_gen/issues
@@ -15,14 +15,14 @@ topics:
   - codegen
   - build-runner
 
-# Part of the fluent family. Not a pub-workspace member — do not add
+# Part of the fluent packages. Not a pub-workspace member — do not add
 # `resolution: workspace`.
 
 environment:
   sdk: ^3.7.0
 
-# Path dep on the core while the family is unpublished — the release
-# checklist flips it to a hosted version at publish time.
+# Path dependency on fluent_bundle while these packages are unpublished — the
+# release checklist flips it to a hosted version at publish time.
 dependencies:
   # The Builder interface and the build-time graph protocol. Standard
   # for every Dart code generator.
@@ -32,12 +32,11 @@ dependencies:
   glob: ^2.0.0
 
   # Used for one thing only: the public
-  # `package:fluent_bundle/syntax.dart` barrel exposing `FluentParser`
+  # `package:fluent_bundle/syntax.dart` library exposing `FluentParser`
   # and the parse-time AST. Do not import from fluent_bundle's `src/`
   # — sibling-package internals are off-limits to keep this package
   # independently publishable.
-  fluent_bundle:
-    path: ../fluent_bundle
+  fluent_bundle: ^0.1.0
 
   # Dart code formatter, applied to every emitted file so the output
   # matches the consumer's analysis_options.yaml without analyzer

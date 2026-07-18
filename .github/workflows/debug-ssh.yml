@@ -43,10 +43,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: whuppi/ci/actions/debug-ssh@v2.0.4
+      - uses: whuppi/ci/actions/debug-ssh@v2.0.5
 
       - name: Keep alive (touch /tmp/stop to end)
         shell: bash
         run: |
           echo "SSH session open. Touch /tmp/stop to end."
           while [ ! -f /tmp/stop ]; do sleep 10; done
+
