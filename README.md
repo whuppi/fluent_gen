@@ -51,7 +51,7 @@ Ships only as a `dev_dependency` — nothing from this package ends up in your a
 
 ```yaml
 dev_dependencies:
-  fluent_gen:
+  fluent_gen: ^0.1.0-dev.0
   build_runner:
 ```
 
