@@ -1,10 +1,7 @@
 # Full test — maintainer adds "ready-to-test" to trigger. Label auto-removed on
 # new pushes (stale results = wasted compute). Single matrix — core rows run
 # always, portability rows (marked [P]) run when the portability toggle is on.
-# Each row declares capabilities; the shared make-target provisions them.#
-# PRE-RELEASE NOTE: the pubspec carries sibling-repo path deps that a lone
-# CI checkout cannot resolve — rows go green when the family release flips
-# the deps to hosted (fluent_bundle/docs/UPDATING.md release checklist).
+# Each row declares capabilities; the shared make-target provisions them.
 name: Full Test
 
 on:

@@ -21,8 +21,6 @@ topics:
 environment:
   sdk: ^3.7.0
 
-# Path dependency on fluent_bundle while these packages are unpublished — the
-# release checklist flips it to a hosted version at publish time.
 dependencies:
   # The Builder interface and the build-time graph protocol. Standard
   # for every Dart code generator.
