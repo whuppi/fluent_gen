@@ -292,10 +292,10 @@ packages:
     dependency: transitive
     description:
       name: l10n_currencies
-      sha256: d91e87a3257bf38a779033d8f31dacfb65e1c046fa463a4ffac4bd3e03998e98
+      sha256: f5019012369f305a8c336e21798d74e46daf656ab7fecd3f1f9a7b8d2e6fac8d
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   lints:
     dependency: "direct dev"
     description:
